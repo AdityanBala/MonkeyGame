@@ -1,9 +1,12 @@
-var Monkey , MonkeyRunning
+var Monkey , MonkeyRunning,MonkeyStanding;
 var Banana ,BananaImage, Obstacle, ObstacleImage
 var BananaGroup, ObstacleGroup
 var Score = 0;
 var Ground, GroundImage;
 var WhiteGround,InvisGround;
+var PLAY = 1;
+var END = 0
+var gameState = PLAY;
 
 function preload(){
   
@@ -24,14 +27,19 @@ function preload(){
   ObstacleImage = loadImage("obstacle.png");
   
   GroundImage = loadImage("Ground2.png");
+  
+  MonkeyStanding = loadImage("sprite_0.png")
 }
 
 function setup() {
   createCanvas(500,500);
   
+  var gameState = 1;
+  
   //create monkey
   Monkey = createSprite (80,250,20,20);
   Monkey.addAnimation("Running", MonkeyRunning);
+  Monkey.addAnimation("Standing", MonkeyStanding);
   Monkey.scale = 0.15;
   
   //create ground
@@ -55,7 +63,8 @@ function setup() {
 
 function draw() {
   background("white");
-  
+
+  if(gameState === PLAY){
   //Moving Ground
   Ground.velocityX = -5;
   if(Ground.x < 0){
@@ -82,8 +91,26 @@ function draw() {
     SpawnObstacle();
   }
   
-  //console.log(Monkey.y);
-
+  if(Monkey.isTouching(ObstacleGroup)){
+      gameState = END;
+    }
+  }
+  if(gameState === END){
+    Ground.velocityX = 0;
+    Monkey.velocityY = 0;
+    ObstacleGroup.setVelocityXEach(0);
+    BananaGroup.setVelocityXEach(0);
+    ObstacleGroup.setLifetimeEach(-1);
+    BananaGroup.setLifetimeEach(-1);
+    Monkey.changeAnimation("Standing",MonkeyStanding);
+    textSize(20);
+    text("Press 'R' to restart",200,200);
+    
+    if(keyDown("r")){
+      reset();
+      gameState = PLAY;
+    }
+  }
   
   drawSprites();
 }
@@ -113,4 +140,9 @@ function SpawnObstacle(){
   ObstacleGroup.add(Obstacle);
 }
 
-
+function reset(){
+  ObstacleGroup.destroyEach();
+  BananaGroup.destroyEach();
+  Score = 0;
+  Monkey.changeAnimation("Running", MonkeyRunning);
+}
